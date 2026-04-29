@@ -23,17 +23,20 @@
 module Digit_Incrementer(
     input clk,
     input reset,
-    input button_inc, // Probably need to increase bit size to handle multiple different buttons? Depending on fsm logic
+    input [5:0] button_inc, 
     output reg [3:0] ones,
     output reg [3:0] tens
     );
+    
+    wire inc_pulse;
+    assign inc_pulse = |button_inc;   // any button press increments once
     
     always @(posedge clk or posedge reset) begin
         if (reset) begin
             ones <= 4'd0;
             tens <= 4'd0;
         end
-        else if (button_inc) begin // Whenever a button is pressed increments ones or tens
+        else if (inc_pulse) begin // Whenever a button is pressed increments ones or tens
             if (ones == 4'd9) begin
                 ones <= 4'd0;
                 if (tens == 4'd9)
