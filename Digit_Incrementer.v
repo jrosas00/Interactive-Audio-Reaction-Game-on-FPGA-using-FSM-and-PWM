@@ -9,7 +9,8 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: 
+// Description: Responsible for incrementing ones or tens digit for 7 segment display
+//              Send increment_digit signal to increment digit by 1
 // 
 // Dependencies: 
 // 
@@ -23,20 +24,21 @@
 module Digit_Incrementer(
     input clk,
     input reset,
-    input [5:0] button_inc, 
+    input increment_digit, // Send a single signal to increment
+   // input [5:0] button_inc, 
     output reg [3:0] ones,
     output reg [3:0] tens
     );
     
-    wire inc_pulse;
-    assign inc_pulse = |button_inc;   // any button press increments once
+   // wire inc_pulse;
+   // assign inc_pulse = |button_inc;   // any button press increments once
     
     always @(posedge clk or posedge reset) begin
         if (reset) begin
             ones <= 4'd0;
             tens <= 4'd0;
         end
-        else if (inc_pulse) begin // Whenever a button is pressed increments ones or tens
+        else if (increment_digit) begin 
             if (ones == 4'd9) begin
                 ones <= 4'd0;
                 if (tens == 4'd9)
