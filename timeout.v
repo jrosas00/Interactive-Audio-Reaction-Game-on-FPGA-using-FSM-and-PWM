@@ -5,7 +5,7 @@
 // Create Date: 04/14/2026 12:07:59 PM
 // Module Name: timeout
 // Project Name: Final Project
-// Description: Handles timout for WAIT_INPUT state in FSM
+// Description: Handles timout for WAIT_INPUT, PLAY state in FSM
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -17,7 +17,7 @@ module timeout(
     );
     
     reg [31:0] count;
-    parameter LIMIT = 50_000_000; // ~0.5 sec using 100MHz clock
+    parameter LIMIT = 100_000_000; // ~1 sec using 100MHz clock
     
     always @(posedge clk or posedge reset) begin
        if (reset) begin
