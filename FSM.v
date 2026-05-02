@@ -12,8 +12,7 @@
 
 module FSM(
     input clk,
-    input rst,
-
+    input reset,
     input start_btn,
     input btn_pressed,
     input correct,
@@ -22,20 +21,21 @@ module FSM(
     output reg [2:0] state
 );
 
-    // State encoding
-    parameter IDLE       = 3'b000;
-    parameter START      = 3'b001;
-    parameter PLAY       = 3'b010;
-    parameter WAIT_INPUT = 3'b011;
-    parameter CHECK      = 3'b100;
-    parameter SCORE      = 3'b101;
-    parameter GAME_OVER  = 3'b110;
+    // State encoding (game phases)
+    parameter IDLE       = 3'b000; // Waiting for player to press start
+    parameter START      = 3'b001; // One-cycle setup before playing note
+    parameter PLAY       = 3'b010; // Play note (sound ON, timer running)
+    parameter PAUSE      = 3'b011; // One-cycle gap to reset timer
+    parameter WAIT_INPUT = 3'b100; // Wait for player input (sound OFF)
+    parameter CHECK      = 3'b101; // Evaluate answer
+    parameter SCORE      = 3'b110; // Correct answer, increment score
+    parameter GAME_OVER  = 3'b111; // Wrong/timeout, wait for restart
     
     reg [2:0] next_state;
     
-    // State register
-    always @(posedge clk or posedge rst) begin
-        if (rst)
+    // State register: updates current state on clock edge
+    always @(posedge clk or posedge reset) begin
+        if (reset)
             state <= IDLE;
         else
             state <= next_state;
@@ -44,7 +44,7 @@ module FSM(
     // Next state logic
     always @(*) begin
         case(state)
-    
+            // Wait for start button
             IDLE: begin
                 if (start_btn)
                     next_state = START;
@@ -52,14 +52,25 @@ module FSM(
                     next_state = IDLE;
             end
     
+            // One-cycle transition to begin playing note
             START: begin
-                next_state = PLAY; // !!! FOR NOW !!
+                next_state = PLAY; 
             end
     
+            // Play note until timeout expires
             PLAY: begin
-                next_state = WAIT_INPUT;
+                 if (timeout)
+                     next_state = PAUSE;
+                 else
+                     next_state = PLAY;
+            end
+            
+            // One-cycle state to reset timer before input phase
+            PAUSE: begin 
+                next_state = WAIT_INPUT; 
             end
     
+            // Wait for player response or timeout
             WAIT_INPUT: begin
                 if (timeout)
                     next_state = GAME_OVER;
@@ -69,6 +80,7 @@ module FSM(
                     next_state = WAIT_INPUT;
             end
     
+            // Determine if answer is correct
             CHECK: begin
                 if (correct)
                     next_state = SCORE;
@@ -76,13 +88,15 @@ module FSM(
                     next_state = GAME_OVER;
             end
     
+            // Correct answer, move to next round
             SCORE: begin
                 next_state = PLAY;
             end
     
+            // Stay here until player presses start to restart
             GAME_OVER: begin
                 if (start_btn)
-                    next_state = IDLE;
+                    next_state = START;
                 else
                     next_state = GAME_OVER;
             end
